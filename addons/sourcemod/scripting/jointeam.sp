@@ -32,7 +32,7 @@ public Plugin:myinfo =
 	author      = "Root",
 	description = "Adds more feautres to default 'jointeam' command",
 	version     = PLUGIN_VERSION,
-	url         = "forums.alliedmods.net/showthread.php?p=XXXXXXX"
+	url         = "forums.alliedmods.net/showthread.php?p=1911371"
 };
 
 
