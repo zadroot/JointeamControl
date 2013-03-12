@@ -89,13 +89,13 @@ public Action:OnJoinTeam(client, const String:command[], numArgs)
 		// We want to allow admins to avoid any restrictions, so check access
 		if (jointeam_override != 0 && CheckCommandAccess(client, "jointeam_override", jointeam_override, true))
 		{
-			// mp_limitteams? more players in desired team? unlimited amount of team changes? All stuff is right here!
+			// ignore mp_limitteams behaviour? more players in desired team? unlimited amount of team changes? All stuff is right here
 			ChangeClientTeam(client, desiredTeam);
 			IsChangedTeam[client] = false;
 		}
 
-		// Block if opposite team has more players (or same) than in your team + value of mp_limitteams ConVar
-		if (GetTeamClientCount(desiredTeam) >= GetTeamClientCount(GetOtherTeam(desiredTeam)) + GetProperValue(client))
+		// Block if opposite team has more players (or same) than in your team, including the value of mp_limitteams ConVar
+		if (GetTeamClientCount(desiredTeam) > GetTeamClientCount(GetOtherTeam(desiredTeam)) + GetConVarInt(mp_limitteams))
 		{
 			return Plugin_Handled;
 		}
@@ -147,14 +147,4 @@ GetOtherTeam(team)
 {
 	// Returns team index as 3 if opposite team is 2, otherwise it returns 2
 	return team == 2 ? 3 : 2;
-}
-
-/* GetProperValue()
- *
- * Gets proper value for simulate mp_limitteams.
- * ---------------------------------------------------------------------------------------- */
-GetProperValue(client)
-{
-	// If player is not a spectator, divide himself from 'current team mates count' to calculate mp_limitteams stuff
-	return (GetClientTeam(client) > TEAM_SPECTATOR) ? GetConVarInt(mp_limitteams) - 1 : GetConVarInt(mp_limitteams);
 }
