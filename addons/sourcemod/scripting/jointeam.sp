@@ -94,8 +94,8 @@ public Action:OnJoinTeam(client, const String:command[], numArgs)
 			IsChangedTeam[client] = false;
 		}
 
-		// Block if opposite team has more players (or same) than in your team (not including youself) + value of mp_limitteams ConVar
-		if (GetTeamClientCount(desiredTeam) >= GetTeamClientCount(GetOtherTeam(desiredTeam)) + GetConVarInt(mp_limitteams) - 1)
+		// Block if opposite team has more players (or same) than in your team + value of mp_limitteams ConVar
+		if (GetTeamClientCount(desiredTeam) >= GetTeamClientCount(GetOtherTeam(desiredTeam)) + GetProperValue(client))
 		{
 			return Plugin_Handled;
 		}
@@ -147,4 +147,14 @@ GetOtherTeam(team)
 {
 	// Returns team index as 3 if opposite team is 2, otherwise it returns 2
 	return team == 2 ? 3 : 2;
+}
+
+/* GetProperValue()
+ *
+ * Gets proper value for simulate mp_limitteams.
+ * ---------------------------------------------------------------------------------------- */
+GetProperValue(client)
+{
+	// If player is not a spectator, divide himself from 'current team mates count' to calculate mp_limitteams stuff
+	return (GetClientTeam(client) > TEAM_SPECTATOR) ? GetConVarInt(mp_limitteams) - 1 : GetConVarInt(mp_limitteams);
 }
