@@ -43,7 +43,7 @@ public Plugin:myinfo =
 public OnPluginStart()
 {
 	// Create console variables
-	CreateConVar("sm_jointeam_control", PLUGIN_VERSION, PLUGIN_NAME, FCVAR_NOTIFY|FCVAR_PLUGIN|FCVAR_SPONLY);
+	CreateConVar("sm_jointeam_control", PLUGIN_VERSION, PLUGIN_NAME, FCVAR_NOTIFY|FCVAR_DONTRECORD);
 
 	jointeam_immunity = CreateConVar("sm_jointeam_immunity", "z", "If flag is specified (a-z), users with that flag will able to change team without any restrictions",       FCVAR_PLUGIN);
 	jointeam_silent   = CreateConVar("sm_jointeam_silent",   "0", "Whether or not suppress a message when player changed team (ex. 'Player is joining the Terrorist force')", FCVAR_PLUGIN, true, 0.0, true, 1.0);
@@ -73,7 +73,7 @@ public OnClientDisconnect(client) IsChangedTeam[client] = false;
  * ---------------------------------------------------------------------------------------- */
 public Action:OnJoinTeam(client, const String:command[], numArgs)
 {
-	if (client != 0 && numArgs >= 1)
+	if (IsClientInGame(client) && numArgs >= 1)
 	{
 		// Get desired team using argument and retrieve the flag from "sm_jointeam_immunity" ConVar
 		decl String:arg[8], String:admflag[8];
@@ -89,7 +89,7 @@ public Action:OnJoinTeam(client, const String:command[], numArgs)
 		// We want to allow admins to avoid any restrictions, so check access
 		if (jointeam_override != 0 && CheckCommandAccess(client, "jointeam_override", jointeam_override, true))
 		{
-			// mp_limitteams? more players in desired team? unlimited amount of team changes? All stuff is right here!
+			// mp_limitteams? more players in desired team? unlimited amount of team changes? All stuff is right here
 			ChangeClientTeam(client, desiredTeam);
 			IsChangedTeam[client] = false;
 		}
@@ -105,7 +105,7 @@ public Action:OnJoinTeam(client, const String:command[], numArgs)
 		&& GetClientTeam(client) > TEAM_SPECTATOR)
 		{
 			// Notify client when team was changed previously until respawn
-			PrintCenterText(client, "Only 1 team change is allowed.");
+			PrintCenterText(client, "Only 1 team change is allowed");
 			return Plugin_Handled;
 		}
 		else if (desiredTeam != GetClientTeam(client))
