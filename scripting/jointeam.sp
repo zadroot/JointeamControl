@@ -8,16 +8,13 @@
 * Changelog & more info at http://goo.gl/4nKhJ
 */
 
-// ====[ SEMICOLON ]=======================================================================
-#pragma semicolon 1
-
-// ====[ SDKTOOLS ]========================================================================
 #include <sdktools_functions>
+#undef REQUIRE_EXTENSIONS
+#include <cstrike>
 
 // ====[ CONSTANTS ]=======================================================================
 #define PLUGIN_NAME    "Jointeam Control"
 #define PLUGIN_VERSION "1.0"
-#define TEAM_SPECTATOR 1
 
 // ====[ VARIABLES ]=======================================================================
 new	Handle:mp_limitteams     = INVALID_HANDLE,
@@ -58,14 +55,18 @@ public OnPluginStart()
 	HookEvent("player_spawn", OnPlayerSpawn, EventHookMode_Post);
 	HookEvent("player_team",  OnTeamChange,  EventHookMode_Pre);
 
-	AutoExecConfig(true);
+	AutoExecConfig();
 }
 
 /* OnClientDisconnect(client)
  *
  * When a client disconnects from the server.
  * ---------------------------------------------------------------------------------------- */
-public OnClientDisconnect(client) IsChangedTeam[client] = false;
+public OnClientDisconnect_Post(client)
+{
+	// Reset boolean when player disconnects from server
+	IsChangedTeam[client] = false;
+}
 
 /* OnJoinTeam()
  *
@@ -76,7 +77,7 @@ public Action:OnJoinTeam(client, const String:command[], numArgs)
 	if (IsClientInGame(client) && numArgs >= 1)
 	{
 		// Get desired team using argument and retrieve the flag from "sm_jointeam_immunity" ConVar
-		decl String:arg[8], String:admflag[8];
+		decl String:arg[8], String:admflag[AdminFlags_TOTAL];
 		GetCmdArg(1, arg, sizeof(arg));
 		GetConVarString(jointeam_immunity, admflag, sizeof(admflag));
 
@@ -89,7 +90,7 @@ public Action:OnJoinTeam(client, const String:command[], numArgs)
 		// We want to allow admins to avoid any restrictions, so check access
 		if (jointeam_override != 0 && CheckCommandAccess(client, "jointeam_override", jointeam_override, true))
 		{
-			// mp_limitteams? more players in desired team? unlimited amount of team changes? All stuff is right here
+			// mp_limitteams rest? more players in desired team? unlimited amount of team changes? All stuff is right here
 			ChangeClientTeam(client, desiredTeam);
 			IsChangedTeam[client] = false;
 		}
@@ -102,7 +103,7 @@ public Action:OnJoinTeam(client, const String:command[], numArgs)
 
 		// Since spectators can change teams more than once, ignore them
 		if (bool:IsChangedTeam[client] == true
-		&& GetClientTeam(client) > TEAM_SPECTATOR)
+		&& GetClientTeam(client) > CS_TEAM_SPECTATOR)
 		{
 			// Notify client when team was changed previously until respawn
 			PrintCenterText(client, "Only 1 team change is allowed");
@@ -116,7 +117,6 @@ public Action:OnJoinTeam(client, const String:command[], numArgs)
 		}
 	}
 
-	// Andersso said Putin was here
 	return Plugin_Handled;
 }
 
@@ -134,7 +134,7 @@ public OnPlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast)
  *
  * Called when a player changes team.
  * ---------------------------------------------------------------------------------------- */
-public OnTeamChange(Handle:event, const String:name[], bool:dontBroadcast)
+public Action:OnTeamChange(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	if (GetConVarBool(jointeam_silent)) SetEventBroadcast(event, true);
 }
@@ -146,7 +146,7 @@ public OnTeamChange(Handle:event, const String:name[], bool:dontBroadcast)
 GetOtherTeam(team)
 {
 	// Returns team index as 3 if opposite team is 2, otherwise it returns 2
-	return team == 2 ? 3 : 2;
+	return team == CS_TEAM_T ? CS_TEAM_CT : CS_TEAM_T;
 }
 
 /* GetProperValue()
@@ -156,5 +156,5 @@ GetOtherTeam(team)
 GetProperValue(client)
 {
 	// If player is not a spectator, divide himself from 'current team mates count' to calculate mp_limitteams stuff
-	return (GetClientTeam(client) > TEAM_SPECTATOR) ? GetConVarInt(mp_limitteams) - 1 : GetConVarInt(mp_limitteams);
+	return (GetClientTeam(client) > CS_TEAM_SPECTATOR) ? GetConVarInt(mp_limitteams) - 1 : GetConVarInt(mp_limitteams);
 }
