@@ -8,13 +8,13 @@
 * Changelog & more info at http://goo.gl/4nKhJ
 */
 
+// ChangeClientTeam native is used in _functions
 #include <sdktools_functions>
-#undef REQUIRE_EXTENSIONS
-#include <cstrike>
 
 // ====[ CONSTANTS ]=======================================================================
 #define PLUGIN_NAME    "Jointeam Control"
 #define PLUGIN_VERSION "1.0"
+#define TEAM_SPECTATOR 1
 
 // ====[ VARIABLES ]=======================================================================
 new	Handle:mp_limitteams     = INVALID_HANDLE,
@@ -103,7 +103,7 @@ public Action:OnJoinTeam(client, const String:command[], numArgs)
 
 		// Since spectators can change teams more than once, ignore them
 		if (bool:IsChangedTeam[client] == true
-		&& GetClientTeam(client) > CS_TEAM_SPECTATOR)
+		&& GetClientTeam(client) > TEAM_SPECTATOR)
 		{
 			// Notify client when team was changed previously until respawn
 			PrintCenterText(client, "Only 1 team change is allowed");
@@ -146,7 +146,7 @@ public Action:OnTeamChange(Handle:event, const String:name[], bool:dontBroadcast
 GetOtherTeam(team)
 {
 	// Returns team index as 3 if opposite team is 2, otherwise it returns 2
-	return team == CS_TEAM_T ? CS_TEAM_CT : CS_TEAM_T;
+	return team == 2 ? 3 : 2;
 }
 
 /* GetProperValue()
@@ -156,5 +156,5 @@ GetOtherTeam(team)
 GetProperValue(client)
 {
 	// If player is not a spectator, divide himself from 'current team mates count' to calculate mp_limitteams stuff
-	return (GetClientTeam(client) > CS_TEAM_SPECTATOR) ? GetConVarInt(mp_limitteams) - 1 : GetConVarInt(mp_limitteams);
+	return (GetClientTeam(client) > TEAM_SPECTATOR) ? (GetConVarInt(mp_limitteams) - 1) : GetConVarInt(mp_limitteams);
 }
