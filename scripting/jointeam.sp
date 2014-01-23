@@ -8,7 +8,7 @@
 * Changelog & more info at http://goo.gl/4nKhJ
 */
 
-// ChangeClientTeam native is used in _functions
+// Due to usage of ChangeClientTeam native
 #include <sdktools_functions>
 
 // ====[ CONSTANTS ]=======================================================================
@@ -41,7 +41,6 @@ public OnPluginStart()
 {
 	// Create console variables
 	CreateConVar("sm_jointeam_control", PLUGIN_VERSION, PLUGIN_NAME, FCVAR_NOTIFY|FCVAR_DONTRECORD);
-
 	jointeam_immunity = CreateConVar("sm_jointeam_immunity", "z", "If flag is specified (a-z), users with that flag will able to change team without any restrictions",       FCVAR_PLUGIN);
 	jointeam_silent   = CreateConVar("sm_jointeam_silent",   "0", "Whether or not suppress a message when player changed team (ex. 'Player is joining the Terrorist force')", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 
@@ -95,11 +94,12 @@ public Action:OnJoinTeam(client, const String:command[], numArgs)
 			IsChangedTeam[client] = false;
 		}
 
+		// Desired team index for auto-assign is 0, continue
+		if (desiredTeam < TEAM_SPECTATOR) return Plugin_Continue;
+
 		// Block if opposite team has more players (or same) than in your team + value of mp_limitteams ConVar
 		if (GetTeamClientCount(desiredTeam) >= GetTeamClientCount(GetOtherTeam(desiredTeam)) + GetProperValue(client))
-		{
 			return Plugin_Handled;
-		}
 
 		// Since spectators can change teams more than once, ignore them
 		if (bool:IsChangedTeam[client] == true
@@ -126,7 +126,7 @@ public Action:OnJoinTeam(client, const String:command[], numArgs)
  * ---------------------------------------------------------------------------------------- */
 public OnPlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast)
 {
-	// Lets allow client to change teams again
+	// Let allow client to change teams again
 	IsChangedTeam[GetClientOfUserId(GetEventInt(event, "userid"))] = false;
 }
 
