@@ -30,7 +30,7 @@ public Plugin:myinfo =
 	description = "Adds more feautres to default 'jointeam' command",
 	version     = PLUGIN_VERSION,
 	url         = "forums.alliedmods.net/showthread.php?p=1911371"
-};
+}
 
 
 /* OnPluginStart()
@@ -75,7 +75,7 @@ public Action:OnJoinTeam(client, const String:command[], numArgs)
 {
 	if (IsClientInGame(client) && numArgs >= 1)
 	{
-		// Get desired team using argument and retrieve the flag from "sm_jointeam_immunity" ConVar
+		// Get desired team using argument and retrieve the flag from "sm_jointeam_immunity" cvar
 		decl String:arg[8], String:admflag[AdminFlags_TOTAL];
 		GetCmdArg(1, arg, sizeof(arg));
 		GetConVarString(jointeam_immunity, admflag, sizeof(admflag));
@@ -86,22 +86,22 @@ public Action:OnJoinTeam(client, const String:command[], numArgs)
 		// Since 'jointeam' args is only a values, make it safer anyway
 		new desiredTeam = StringToInt(arg);
 
-		// We want to allow admins to avoid any restrictions, so check access
+		// We want to allow admins to avoid any restrictions - so check access
 		if (jointeam_override != 0 && CheckCommandAccess(client, "jointeam_override", jointeam_override, true))
 		{
-			// mp_limitteams rest? more players in desired team? unlimited amount of team changes? All stuff is right here
+			// mp_limitteams restriction? more players in desired team? unlimited amount of team changes? No please
 			ChangeClientTeam(client, desiredTeam);
 			IsChangedTeam[client] = false;
 		}
 
-		// Desired team index for auto-assign is 0, continue
+		// Auto assign team index is 0, so ignore team changing
 		if (desiredTeam < TEAM_SPECTATOR) return Plugin_Continue;
 
 		// Block if opposite team has more players (or same) than in your team + value of mp_limitteams ConVar
 		if (GetTeamClientCount(desiredTeam) >= GetTeamClientCount(GetOtherTeam(desiredTeam)) + GetProperValue(client))
 			return Plugin_Handled;
 
-		// Since spectators can change teams more than once, ignore them
+		// Since spectators can change teams more than once, block team change
 		if (bool:IsChangedTeam[client] == true
 		&& GetClientTeam(client) > TEAM_SPECTATOR)
 		{
